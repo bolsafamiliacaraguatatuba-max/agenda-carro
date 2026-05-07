@@ -334,7 +334,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-50); color: va
         <option value="coral">Transporte de equipe</option>
       </select>
     </div>
-    <div class="fg"><label>Solicitante</label><input type="text" id="f-solicitante" placeholder="Nome do responsável"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">Salvar agendamento</button>
@@ -476,7 +475,7 @@ function renderDia() {
       <div class="booking b-${a.tipo}">
         <div class="booking-left">
           <div class="booking-dest">${a.destino}</div>
-          <div class="booking-meta">${a.motorista} · até ${a.retorno.substring(0,5)} · ${a.solicitante}</div>
+          <div class="booking-meta">${a.motorista} · até ${a.retorno.substring(0,5)}</div>
         </div>
         <button class="booking-del" onclick="deletar('${a.id}')" title="Remover">✕</button>
       </div>`).join('');
@@ -532,7 +531,7 @@ function renderLista() {
         <div style="width:10px;height:10px;border-radius:50%;background:${colors[a.tipo]||colors.blue};flex-shrink:0;margin-top:3px;"></div>
         <div class="list-item-body">
           <div class="list-item-dest">${a.destino}</div>
-          <div class="list-item-meta">${a.motorista} · ${a.solicitante}</div>
+          <div class="list-item-meta">${a.motorista}</div>
         </div>
         <button class="list-item-del" onclick="deletar('${a.id}')" title="Remover">🗑</button>
       </div>`;
@@ -571,15 +570,14 @@ async function salvar() {
   const motorista=document.getElementById('f-motorista').value;
   const destino=document.getElementById('f-destino').value.trim();
   const tipo=document.getElementById('f-tipo').value;
-  const solicitante=document.getElementById('f-solicitante').value.trim();
   const errEl=document.getElementById('modal-err');
-  if (!data||!saida||!retorno||!motorista||!destino||!solicitante) {
+  if (!data||!saida||!retorno||!motorista||!destino) {
     errEl.textContent='Preencha todos os campos.'; errEl.style.display='block'; return;
   }
   errEl.style.display='none';
   const btn=document.getElementById('btn-salvar'); btn.disabled=true; btn.textContent='Salvando...';
   try {
-    const ag = await api('POST','agendamentos',{data,saida,retorno,motorista,destino,tipo,solicitante});
+    const ag = await api('POST','agendamentos',{data,saida,retorno,motorista,destino,tipo});
     agendamentos.push(Array.isArray(ag)?ag[0]:ag);
     closeModal(); renderCalendar(); renderContent(); updateStats();
     toast('Agendamento salvo!','success');
