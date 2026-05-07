@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda do Carro — Cadastro Único</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #1a56db;
+  --blue-light: #e8f0fe;
+  --blue-dark: #1240a8;
+  --green: #057a55;
+  --green-light: #def7ec;
+  --amber: #92400e;
+  --amber-light: #fef3c7;
+  --coral: #9b1c1c;
+  --coral-light: #fde8e8;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+/* HEADER */
+.app-header {
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 1.5rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.app-logo { display: flex; align-items: center; gap: 10px; }
+.app-logo-icon {
+  width: 34px; height: 34px;
+  background: var(--blue);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 18px;
+}
+.app-logo-text { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.app-logo-sub { font-size: 12px; color: var(--gray-500); font-weight: 400; }
+.header-actions { display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-dark); }
+.btn-outline { background: #fff; color: var(--gray-700); border: 1px solid var(--gray-200); }
+.btn-outline:hover { background: var(--gray-50); border-color: var(--gray-300); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* LAYOUT */
+.app-body { display: flex; height: calc(100vh - 60px); overflow: hidden; }
+.sidebar { width: 260px; background: #fff; border-right: 1px solid var(--gray-200); display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
+.main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+/* SIDEBAR */
+.sidebar-section { padding: 1rem 1rem 0.5rem; }
+.sidebar-label { font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+/* CALENDAR */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cal-nav-btn { background: none; border: none; cursor: pointer; color: var(--gray-400); padding: 4px; border-radius: 4px; font-size: 16px; line-height: 1; }
+.cal-nav-btn:hover { background: var(--gray-100); color: var(--gray-700); }
+.cal-month { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.cal-dow { font-size: 10px; color: var(--gray-400); text-align: center; padding: 3px 0; font-weight: 500; }
+.cal-day {
+  font-size: 12px; text-align: center; padding: 5px 2px;
+  border-radius: 6px; cursor: pointer; color: var(--gray-700);
+  position: relative; line-height: 1;
+}
+.cal-day:hover { background: var(--gray-100); }
+.cal-day.today { background: var(--blue); color: #fff; font-weight: 600; }
+.cal-day.selected { background: var(--blue-light); color: var(--blue-dark); font-weight: 600; }
+.cal-day.today.selected { background: var(--blue); color: #fff; }
+.cal-day.other { color: var(--gray-300); }
+.cal-day.has-ev::after { content: ''; width: 4px; height: 4px; background: var(--blue); border-radius: 50%; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); }
+.cal-day.today.has-ev::after, .cal-day.today.selected.has-ev::after { background: rgba(255,255,255,0.7); }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 1rem 1rem; }
+.stat { background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: var(--radius-sm); padding: 10px; }
+.stat-val { font-size: 22px; font-weight: 600; color: var(--gray-900); font-family: 'DM Mono', monospace; }
+.stat-lbl { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+
+/* MOTORISTAS SIDEBAR */
+.driver-chip { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); margin-bottom: 2px; }
+.driver-chip:hover { background: var(--gray-50); }
+.av { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--blue-dark); flex-shrink: 0; }
+.driver-chip-name { font-size: 12px; color: var(--gray-700); }
+
+/* MAIN CONTENT */
+.day-bar {
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.day-bar-title { font-size: 18px; font-weight: 600; color: var(--gray-900); }
+.day-bar-sub { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gray-200); background: #fff; padding: 0 1.5rem; }
+.tab { font-size: 13px; font-weight: 500; padding: 10px 14px; border: none; background: none; cursor: pointer; color: var(--gray-500); border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+.tab:hover { color: var(--gray-700); }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+.content-area { flex: 1; padding: 1.25rem 1.5rem; }
+
+/* SLOTS */
+.slot-row { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--gray-100); }
+.slot-time { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--gray-400); width: 48px; flex-shrink: 0; padding-top: 10px; }
+.slot-body { flex: 1; min-height: 36px; }
+.slot-empty { font-size: 12px; color: var(--gray-300); padding: 9px 0; font-style: italic; }
+.slot-add { background: none; border: none; color: var(--blue); font-size: 12px; cursor: pointer; padding: 0; margin-left: 8px; font-family: 'DM Sans', sans-serif; font-style: normal; }
+.slot-add:hover { text-decoration: underline; }
+
+.booking {
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  position: relative;
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.booking-left { flex: 1; min-width: 0; }
+.booking-dest { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.booking-meta { font-size: 11px; margin-top: 2px; opacity: 0.8; }
+.booking-del { background: none; border: none; cursor: pointer; padding: 3px; border-radius: 4px; opacity: 0.5; font-size: 15px; }
+.booking-del:hover { opacity: 1; }
+.b-blue { background: #dbeafe; color: #1e40af; }
+.b-blue .booking-del:hover { background: #bfdbfe; }
+.b-green { background: #d1fae5; color: #065f46; }
+.b-green .booking-del:hover { background: #a7f3d0; }
+.b-amber { background: #fef3c7; color: #92400e; }
+.b-amber .booking-del:hover { background: #fde68a; }
+.b-coral { background: #fee2e2; color: #991b1b; }
+.b-coral .booking-del:hover { background: #fecaca; }
+
+/* WEEK VIEW */
+.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.week-col { border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden; }
+.week-col-hdr { padding: 8px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); text-align: center; }
+.week-col-hdr .dow { font-size: 11px; color: var(--gray-500); font-weight: 500; }
+.week-col-hdr .dom { font-size: 16px; font-weight: 600; color: var(--gray-800); }
+.week-col-hdr.today-col .dom { background: var(--blue); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+.week-col-body { padding: 6px; min-height: 120px; }
+.week-ev { border-radius: 4px; padding: 4px 6px; font-size: 11px; font-weight: 500; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+
+/* LIST VIEW */
+.list-group { margin-bottom: 1.5rem; }
+.list-group-title { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.list-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius); margin-bottom: 6px; }
+.list-item-date { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--gray-500); width: 80px; flex-shrink: 0; }
+.list-item-body { flex: 1; min-width: 0; }
+.list-item-dest { font-size: 13px; font-weight: 500; color: var(--gray-800); }
+.list-item-meta { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+.list-item-del { background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 16px; padding: 4px; border-radius: 4px; }
+.list-item-del:hover { background: #fee2e2; color: #991b1b; }
+
+/* MODAL */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 200;
+  align-items: center; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: #fff; border-radius: var(--radius);
+  padding: 1.5rem; width: 400px; max-width: 95vw;
+  box-shadow: var(--shadow-md);
+}
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 1.25rem; color: var(--gray-900); display: flex; align-items: center; gap: 8px; }
+.fg { margin-bottom: 12px; }
+.fg label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-600); margin-bottom: 5px; }
+.fg input, .fg select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm); font-size: 13px;
+  font-family: 'DM Sans', sans-serif; color: var(--gray-800);
+  background: #fff; transition: border-color 0.15s;
+}
+.fg input:focus, .fg select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+.fr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1rem; }
+.err-msg { font-size: 12px; color: #991b1b; background: #fee2e2; padding: 8px 10px; border-radius: var(--radius-sm); margin-bottom: 10px; display: none; }
+
+/* MOTORISTAS MODAL */
+.mot-modal .mot-list { max-height: 240px; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); }
+.mot-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--gray-100); }
+.mot-item:last-child { border-bottom: none; }
+.mot-item-name { flex: 1; font-size: 13px; color: var(--gray-700); }
+.mot-del { background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 15px; padding: 3px; border-radius: 4px; }
+.mot-del:hover { background: #fee2e2; color: #991b1b; }
+.mot-add-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.mot-add-row input { flex: 1; padding: 7px 10px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 13px; font-family: 'DM Sans', sans-serif; }
+.mot-add-row input:focus { outline: none; border-color: var(--blue); }
+.mot-empty { text-align: center; padding: 1.5rem; color: var(--gray-400); font-size: 13px; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  background: var(--gray-900); color: #fff;
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500;
+  transform: translateY(60px); opacity: 0;
+  transition: all 0.3s; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: #065f46; }
+.toast.error { background: #991b1b; }
+
+/* LOADING */
+.loading { text-align: center; padding: 3rem; color: var(--gray-400); font-size: 14px; }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--gray-200); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: -4px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 1rem 1rem; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .week-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-logo">
+    <div class="app-logo-icon">🚗</div>
+    <div>
+      <div class="app-logo-text">Agenda do Carro</div>
+      <div class="app-logo-sub">Sede — Cadastro Único</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline btn-sm" onclick="openMotModal()">👤 Motoristas</button>
+    <button class="btn btn-primary" onclick="openModal()">+ Novo agendamento</button>
+  </div>
+</header>
+
+<div class="app-body">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Calendário</div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="prevMonth()">&#8249;</button>
+        <span class="cal-month" id="cal-label"></span>
+        <button class="cal-nav-btn" onclick="nextMonth()">&#8250;</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div class="stats-grid" style="margin-top:12px;">
+      <div class="stat"><div class="stat-val" id="s-mes">0</div><div class="stat-lbl">No mês</div></div>
+      <div class="stat"><div class="stat-val" id="s-hoje">0</div><div class="stat-lbl">Hoje</div></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Legenda</div>
+      <div class="legend" style="padding:0 0 1rem;">
+        <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Serviço externo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Visita domiciliar</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Reunião / evento</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Transporte equipe</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Motoristas</div>
+      <div id="sidebar-drivers"></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="day-bar">
+      <div>
+        <div class="day-bar-title" id="day-title"></div>
+        <div class="day-bar-sub" id="day-sub"></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span id="sync-status" style="font-size:11px;color:var(--gray-400);"></span>
+        <button class="btn btn-outline btn-sm" onclick="loadAll()">↻ Atualizar</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('dia',this)">Dia</button>
+      <button class="tab" onclick="setTab('semana',this)">Semana</button>
+      <button class="tab" onclick="setTab('lista',this)">Todos</button>
+    </div>
+
+    <div class="content-area" id="content-area">
+      <div class="loading"><span class="spinner"></span>Carregando...</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AGENDAMENTO -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">📅 Novo agendamento</div>
+    <div class="err-msg" id="modal-err"></div>
+    <div class="fg"><label>Data</label><input type="date" id="f-data"></div>
+    <div class="fr">
+      <div class="fg"><label>Saída</label><input type="time" id="f-saida" value="08:00"></div>
+      <div class="fg"><label>Retorno previsto</label><input type="time" id="f-retorno" value="12:00"></div>
+    </div>
+    <div class="fg"><label>Motorista</label>
+      <select id="f-motorista"><option value="">Selecione...</option></select>
+    </div>
+    <div class="fg"><label>Destino / finalidade</label><input type="text" id="f-destino" placeholder="Ex: Visita domiciliar – Bairro Centro"></div>
+    <div class="fg"><label>Tipo</label>
+      <select id="f-tipo">
+        <option value="blue">Serviço externo</option>
+        <option value="green">Visita domiciliar</option>
+        <option value="amber">Reunião / evento</option>
+        <option value="coral">Transporte de equipe</option>
+      </select>
+    </div>
+    <div class="fg"><label>Solicitante</label><input type="text" id="f-solicitante" placeholder="Nome do responsável"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar" onclick="salvar()">Salvar agendamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MOTORISTAS -->
+<div class="overlay" id="mot-overlay">
+  <div class="modal mot-modal">
+    <div class="modal-title">👤 Motoristas cadastrados</div>
+    <div class="mot-add-row">
+      <input type="text" id="m-nome" placeholder="Nome do motorista" onkeydown="if(event.key==='Enter')addMotorista()">
+      <button class="btn btn-primary btn-sm" onclick="addMotorista()">+ Adicionar</button>
+    </div>
+    <div class="mot-list" id="mot-list"><div class="mot-empty">Nenhum motorista cadastrado</div></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeMot()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://hpcraczwoldedyxklmmw.supabase.co/rest/v1';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY3JhY3p3b2xkZWR5eGtsbW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzUzNDMsImV4cCI6MjA5MzY1MTM0M30.bBj3f56s-OKe81dDpKZfixY5OEuS589m6pvCvUDjcjo';
+const HEADERS = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const HORARIOS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+
+let hoje = new Date();
+let curYear = hoje.getFullYear(), curMonth = hoje.getMonth();
+let selectedDate = new Date(hoje);
+let agendamentos = [], motoristas = [];
+let currentTab = 'dia';
+let preHora = null;
+
+function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function initials(n) { const p = n.trim().split(' ').filter(Boolean); return p.length===1?p[0][0].toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase(); }
+
+async function api(method, table, body, params) {
+  let url = `${SUPA_URL}/${table}`;
+  if (params) url += '?' + params;
+  const opts = { method, headers: HEADERS };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  return method === 'DELETE' ? null : r.json();
+}
+
+async function loadAll() {
+  setSyncStatus('Sincronizando...');
+  try {
+    const [ags, mots] = await Promise.all([
+      api('GET', 'agendamentos', null, 'order=data,saida'),
+      api('GET', 'motoristas', null, 'order=nome')
+    ]);
+    agendamentos = ags || [];
+    motoristas = mots || [];
+    renderCalendar(); renderContent(); renderSidebarDrivers(); updateStats();
+    setSyncStatus('Atualizado');
+    setTimeout(()=>setSyncStatus(''), 2000);
+  } catch(e) {
+    setSyncStatus('Erro ao carregar');
+    toast('Erro ao conectar com o banco de dados', 'error');
+  }
+}
+
+function setSyncStatus(t) { document.getElementById('sync-status').textContent = t; }
+
+function renderCalendar() {
+  document.getElementById('cal-label').textContent = MESES[curMonth] + ' ' + curYear;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  DIAS.forEach(d => { const el = document.createElement('div'); el.className='cal-dow'; el.textContent=d[0]; grid.appendChild(el); });
+  const first = new Date(curYear, curMonth, 1);
+  const dim = new Date(curYear, curMonth+1, 0).getDate();
+  for (let i=0; i<first.getDay(); i++) {
+    const el = document.createElement('div'); el.className='cal-day other';
+    const prev = new Date(curYear, curMonth, 0).getDate() - first.getDay() + 1 + i;
+    el.textContent = prev; grid.appendChild(el);
+  }
+  for (let d=1; d<=dim; d++) {
+    const el = document.createElement('div'); el.className='cal-day';
+    const dt = new Date(curYear, curMonth, d);
+    const key = dateKey(dt);
+    el.textContent = d;
+    if (dateKey(dt)===dateKey(hoje)) el.classList.add('today');
+    if (dateKey(dt)===dateKey(selectedDate)) el.classList.add('selected');
+    if (agendamentos.some(a=>a.data===key)) el.classList.add('has-ev');
+    el.onclick = () => { selectedDate=dt; renderCalendar(); renderContent(); };
+    grid.appendChild(el);
+  }
+}
+
+function updateStats() {
+  const mesKey = `${curYear}-${String(curMonth+1).padStart(2,'0')}`;
+  document.getElementById('s-mes').textContent = agendamentos.filter(a=>a.data.startsWith(mesKey)).length;
+  document.getElementById('s-hoje').textContent = agendamentos.filter(a=>a.data===dateKey(hoje)).length;
+}
+
+function renderSidebarDrivers() {
+  const el = document.getElementById('sidebar-drivers');
+  if (!motoristas.length) { el.innerHTML='<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">Nenhum motorista</div>'; return; }
+  el.innerHTML = motoristas.map(m=>`
+    <div class="driver-chip">
+      <div class="av">${initials(m.nome)}</div>
+      <div class="driver-chip-name">${m.nome}</div>
+    </div>`).join('');
+}
+
+function setTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderContent();
+}
+
+function renderContent() {
+  if (currentTab==='dia') renderDia();
+  else if (currentTab==='semana') renderSemana();
+  else renderLista();
+}
+
+function renderDia() {
+  const key = dateKey(selectedDate);
+  const ags = agendamentos.filter(a=>a.data===key);
+  const nomeDia = DIAS[selectedDate.getDay()];
+  document.getElementById('day-title').textContent = `${nomeDia}, ${selectedDate.getDate()} de ${MESES[selectedDate.getMonth()]} de ${selectedDate.getFullYear()}`;
+  document.getElementById('day-sub').textContent = ags.length===0 ? 'Nenhum agendamento' : `${ags.length} agendamento${ags.length>1?'s':''}`;
+
+  const ca = document.getElementById('content-area');
+  ca.innerHTML = HORARIOS.map(h => {
+    const booked = ags.filter(a=>a.saida.substring(0,5)===h);
+    const bks = booked.map(a=>`
+      <div class="booking b-${a.tipo}">
+        <div class="booking-left">
+          <div class="booking-dest">${a.destino}</div>
+          <div class="booking-meta">${a.motorista} · até ${a.retorno.substring(0,5)} · ${a.solicitante}</div>
+        </div>
+        <button class="booking-del" onclick="deletar('${a.id}')" title="Remover">✕</button>
+      </div>`).join('');
+    const empty = booked.length===0 ? `<span class="slot-empty">Livre <button class="slot-add" onclick="openModalHora('${h}')">+ Agendar</button></span>` : '';
+    return `<div class="slot-row"><div class="slot-time">${h}</div><div class="slot-body">${bks||empty}</div></div>`;
+  }).join('');
+}
+
+function renderSemana() {
+  const dow = selectedDate.getDay();
+  const monday = new Date(selectedDate); monday.setDate(monday.getDate()-dow);
+  document.getElementById('day-title').textContent = 'Semana';
+  document.getElementById('day-sub').textContent = 'Visão semanal';
+  let html = '<div class="week-grid">';
+  for (let i=0;i<7;i++) {
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    const key = dateKey(d);
+    const ags = agendamentos.filter(a=>a.data===key);
+    const isT = dateKey(d)===dateKey(hoje);
+    html+=`<div class="week-col"><div class="week-col-hdr${isT?' today-col':''}">
+      <div class="dow">${DIAS[d.getDay()]}</div>
+      <div class="dom">${d.getDate()}</div>
+    </div><div class="week-col-body">`;
+    const colors={blue:'#dbeafe',green:'#d1fae5',amber:'#fef3c7',coral:'#fee2e2'};
+    const tc={blue:'#1e40af',green:'#065f46',amber:'#92400e',coral:'#991b1b'};
+    if (ags.length===0) html+=`<div style="font-size:11px;color:var(--gray-300);text-align:center;padding-top:8px;">livre</div>`;
+    ags.forEach(a=>{ html+=`<div class="week-ev" style="background:${colors[a.tipo]||colors.blue};color:${tc[a.tipo]||tc.blue}">${a.saida.substring(0,5)} ${a.destino}</div>`; });
+    html+=`</div></div>`;
+  }
+  html+='</div>';
+  document.getElementById('content-area').innerHTML = html;
+}
+
+function renderLista() {
+  document.getElementById('day-title').textContent = 'Todos os agendamentos';
+  document.getElementById('day-sub').textContent = agendamentos.length + ' registros';
+  if (!agendamentos.length) {
+    document.getElementById('content-area').innerHTML='<div class="loading" style="color:var(--gray-400)">Nenhum agendamento cadastrado</div>';
+    return;
+  }
+  const sorted = [...agendamentos].sort((a,b)=>(a.data+a.saida).localeCompare(b.data+b.saida));
+  const groups = {};
+  sorted.forEach(a=>{ if(!groups[a.data]) groups[a.data]=[]; groups[a.data].push(a); });
+  const colors={blue:'#3b82f6',green:'#10b981',amber:'#f59e0b',coral:'#ef4444'};
+  let html='';
+  Object.keys(groups).sort().forEach(key=>{
+    const [y,m,d] = key.split('-');
+    const dt = new Date(key+'T12:00:00');
+    html+=`<div class="list-group"><div class="list-group-title">${DIAS[dt.getDay()]}, ${d}/${m}/${y}</div>`;
+    groups[key].forEach(a=>{
+      html+=`<div class="list-item">
+        <div class="list-item-date">${a.saida.substring(0,5)}–${a.retorno.substring(0,5)}</div>
+        <div style="width:10px;height:10px;border-radius:50%;background:${colors[a.tipo]||colors.blue};flex-shrink:0;margin-top:3px;"></div>
+        <div class="list-item-body">
+          <div class="list-item-dest">${a.destino}</div>
+          <div class="list-item-meta">${a.motorista} · ${a.solicitante}</div>
+        </div>
+        <button class="list-item-del" onclick="deletar('${a.id}')" title="Remover">🗑</button>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('content-area').innerHTML = html;
+}
+
+function openModal(hora) {
+  preHora = hora||null;
+  const d = selectedDate;
+  document.getElementById('f-data').value = dateKey(d);
+  if (hora) document.getElementById('f-saida').value = hora;
+  document.getElementById('f-destino').value='';
+  document.getElementById('f-solicitante').value='';
+  document.getElementById('modal-err').style.display='none';
+  populateMotSelect();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function openModalHora(h) { openModal(h); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function populateMotSelect() {
+  const sel = document.getElementById('f-motorista');
+  sel.innerHTML='<option value="">Selecione...</option>';
+  [...motoristas].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).forEach(m=>{
+    const o=document.createElement('option'); o.value=m.nome; o.textContent=m.nome; sel.appendChild(o);
+  });
+}
+
+async function salvar() {
+  const data=document.getElementById('f-data').value;
+  const saida=document.getElementById('f-saida').value;
+  const retorno=document.getElementById('f-retorno').value;
+  const motorista=document.getElementById('f-motorista').value;
+  const destino=document.getElementById('f-destino').value.trim();
+  const tipo=document.getElementById('f-tipo').value;
+  const solicitante=document.getElementById('f-solicitante').value.trim();
+  const errEl=document.getElementById('modal-err');
+  if (!data||!saida||!retorno||!motorista||!destino||!solicitante) {
+    errEl.textContent='Preencha todos os campos.'; errEl.style.display='block'; return;
+  }
+  errEl.style.display='none';
+  const btn=document.getElementById('btn-salvar'); btn.disabled=true; btn.textContent='Salvando...';
+  try {
+    const ag = await api('POST','agendamentos',{data,saida,retorno,motorista,destino,tipo,solicitante});
+    agendamentos.push(Array.isArray(ag)?ag[0]:ag);
+    closeModal(); renderCalendar(); renderContent(); updateStats();
+    toast('Agendamento salvo!','success');
+  } catch(e) { errEl.textContent='Erro ao salvar. Tente novamente.'; errEl.style.display='block'; }
+  btn.disabled=false; btn.textContent='Salvar agendamento';
+}
+
+async function deletar(id) {
+  if (!confirm('Remover este agendamento?')) return;
+  try {
+    await api('DELETE','agendamentos',null,`id=eq.${id}`);
+    agendamentos = agendamentos.filter(a=>a.id!==id);
+    renderCalendar(); renderContent(); updateStats();
+    toast('Agendamento removido','success');
+  } catch(e) { toast('Erro ao remover','error'); }
+}
+
+function openMotModal() {
+  renderMotList();
+  document.getElementById('m-nome').value='';
+  document.getElementById('mot-overlay').classList.add('open');
+}
+function closeMot() { document.getElementById('mot-overlay').classList.remove('open'); renderSidebarDrivers(); }
+
+function renderMotList() {
+  const el=document.getElementById('mot-list');
+  if (!motoristas.length) { el.innerHTML='<div class="mot-empty">Nenhum motorista cadastrado</div>'; return; }
+  const sorted=[...motoristas].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  el.innerHTML=sorted.map(m=>`
+    <div class="mot-item">
+      <div class="av">${initials(m.nome)}</div>
+      <div class="mot-item-name">${m.nome}</div>
+      <button class="mot-del" onclick="deletarMot('${m.id}')">✕</button>
+    </div>`).join('');
+}
+
+async function addMotorista() {
+  const nome=document.getElementById('m-nome').value.trim();
+  if (!nome) return;
+  if (motoristas.some(m=>m.nome.toLowerCase()===nome.toLowerCase())) { toast('Motorista já cadastrado','error'); return; }
+  try {
+    const m=await api('POST','motoristas',{nome});
+    motoristas.push(Array.isArray(m)?m[0]:m);
+    motoristas.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+    document.getElementById('m-nome').value='';
+    renderMotList(); renderSidebarDrivers();
+    toast('Motorista cadastrado!','success');
+  } catch(e) { toast('Erro ao cadastrar','error'); }
+}
+
+async function deletarMot(id) {
+  if (!confirm('Remover este motorista?')) return;
+  try {
+    await api('DELETE','motoristas',null,`id=eq.${id}`);
+    motoristas=motoristas.filter(m=>m.id!==id);
+    renderMotList(); renderSidebarDrivers();
+    toast('Motorista removido','success');
+  } catch(e) { toast('Erro ao remover','error'); }
+}
+
+function prevMonth() { curMonth--; if(curMonth<0){curMonth=11;curYear--;} renderCalendar(); }
+function nextMonth() { curMonth++; if(curMonth>11){curMonth=0;curYear++;} renderCalendar(); }
+
+function toast(msg, type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(type?' '+type:'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+document.getElementById('modal-overlay').onclick=e=>{ if(e.target===e.currentTarget) closeModal(); };
+document.getElementById('mot-overlay').onclick=e=>{ if(e.target===e.currentTarget) closeMot(); };
+
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+</body>
+</html>
