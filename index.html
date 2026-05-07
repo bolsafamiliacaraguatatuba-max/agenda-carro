@@ -576,11 +576,15 @@ async function salvar() {
   errEl.style.display='none';
   const btn=document.getElementById('btn-salvar'); btn.disabled=true; btn.textContent='Salvando...';
   try {
-    const ag = await api('POST','agendamentos',{data,saida,retorno,motorista,destino,tipo});
+    const ag = await api('POST','agendamentos',{data,saida,retorno,motorista,destino,tipo,solicitante:motorista});
     agendamentos.push(Array.isArray(ag)?ag[0]:ag);
     closeModal(); renderCalendar(); renderContent(); updateStats();
     toast('Agendamento salvo!','success');
-  } catch(e) { errEl.textContent='Erro ao salvar. Tente novamente.'; errEl.style.display='block'; }
+  } catch(e) {
+    errEl.textContent='Erro: ' + (e.message||'Verifique os dados.');
+    errEl.style.display='block';
+    console.error('Erro:', e);
+  }
   btn.disabled=false; btn.textContent='Salvar agendamento';
 }
 
